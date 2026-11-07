@@ -1,0 +1,37 @@
+name: CI
+
+# Runs the unit test suite on every branch and pull request.
+# The release pipeline (publish-release.yml) runs the same suite before publishing.
+
+on:
+  push:
+    branches-ignore: [ main ]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: Unit tests (Python ${{ matrix.python-version }})
+    # Windows is required, not a preference: core/storage.py imports msvcrt for
+    # file locking and core/ahk/runtime.py uses winreg for autostart, so the
+    # suite fails at import time on Linux.
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: [ '3.8', '3.12' ]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      # No "install dependencies" step on purpose: the plugin runs on the
+      # standard library only. If that ever changes, restore
+      # `pip install -r requirements.txt -t ./lib` here.
+      - name: Run unit tests
+        run: python -m unittest discover -s tests -t . -v

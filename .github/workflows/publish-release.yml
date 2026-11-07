@@ -1,0 +1,91 @@
+name: Publish Release
+
+# Builds the Flow Launcher release zip and publishes it as a GitHub Release.
+# Flow Launcher's plugin store watches this repository: it downloads the zip
+# from the latest release, reads plugin.json from inside it and refreshes the
+# store entry automatically (Version, Description, Author, Language, Website).
+#
+# Release asset name is intentionally version-less ("FlowKeyManager.zip") so the
+# download URL stays stable across versions.
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+    paths-ignore:
+      - '.github/**'
+      - '**/*.md'
+      - 'LICENSE'
+      - '.gitignore'
+      - '.gitattributes'
+      - 'store/**'
+
+permissions:
+  contents: write
+
+env:
+  PLUGIN_ARCHIVE: FlowKeyManager
+  PYTHON_VERSION: '3.12'
+
+jobs:
+  test:
+    name: Unit tests
+    # Windows is required: core/storage.py imports msvcrt, autostart uses winreg.
+    runs-on: windows-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ env.PYTHON_VERSION }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Run unit tests
+        run: python -m unittest discover -s tests -t . -v
+
+  publish:
+    name: Build and publish
+    needs: test
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Read version from plugin.json
+        id: version
+        run: |
+          version="$(python3 -c "import json; print(json.load(open('plugin.json'))['Version'])")"
+          echo "value=$version" >> "$GITHUB_OUTPUT"
+          echo "Building release v$version"
+
+      - name: Build release zip
+        run: |
+          # Explicit file list: plugin.json must sit at the archive root, and
+          # neither tests, nor the store entry, nor user data may leak in.
+          zip -r "${{ env.PLUGIN_ARCHIVE }}.zip" \
+            plugin.json \
+            main.py \
+            requirements.txt \
+            LICENSE \
+            README.md \
+            README.ru.md \
+            ARCHITECTURE.md \
+            modules.json.example \
+            core \
+            scripts \
+            Images \
+            -x '*/__pycache__/*' '*.pyc' '*.pyo'
+
+      - name: Verify zip layout
+        run: |
+          python3 -c "import json, zipfile; z = zipfile.ZipFile('${{ env.PLUGIN_ARCHIVE }}.zip'); names = z.namelist(); assert 'plugin.json' in names, names; assert 'main.py' in names, names; assert 'Images/app.png' in names, names; assert any(n.startswith('core/ahk/') for n in names), 'core package is missing'; assert not any(n.startswith(('tests/', 'store/')) for n in names), 'development files leaked into the plugin'; assert 'modules.json' not in names and 'session.json' not in names and 'runtime.ahk' not in names, 'user data leaked into the plugin'; json.loads(z.read('plugin.json')); print('zip layout OK')"
+
+      - name: Publish GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ env.PLUGIN_ARCHIVE }}.zip
+          tag_name: v${{ steps.version.outputs.value }}
+          name: v${{ steps.version.outputs.value }}
+          generate_release_notes: true
