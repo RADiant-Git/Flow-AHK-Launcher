@@ -1,0 +1,12 @@
+{
+  "ID": "d3b07384-d113-4a25-9c8e-a2f03f390001",
+  "Name": "FlowKey Manager",
+  "Description": "Remap keyboard keys and mouse buttons via AutoHotkey v2",
+  "Author": "RADiant",
+  "Version": "1.0.0",
+  "Language": "python",
+  "Website": "https://github.com/RADiant-Git/FlowKey-Manager",
+  "UrlDownload": "https://github.com/RADiant-Git/FlowKey-Manager/releases/download/v1.0.0/FlowKeyManager.zip",
+  "UrlSourceCode": "https://github.com/RADiant-Git/FlowKey-Manager",
+  "IcoPath": "https://cdn.jsdelivr.net/gh/RADiant-Git/FlowKey-Manager@main/Images/app.png"
+}

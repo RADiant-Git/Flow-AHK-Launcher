@@ -1,0 +1,15 @@
+{
+  "format_version": 2,
+  "rules": [
+    {
+      "id": "0f1c2b3a",
+      "name": "Ctrl + Alt + T ➔ Media_Play_Pause",
+      "trigger": "^!t",
+      "action": "Media_Play_Pause",
+      "scope": "*",
+      "mode": "send",
+      "enabled": false,
+      "transparent": false
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+# Нормализуем все текстовые файлы в LF внутри репозитория.
+# Переводы строк в рабочей копии определяет локальный core.autocrlf / core.eol,
+# поэтому у разработчиков на Windows остаётся CRLF, а репозиторий и собранный
+# на Linux релизный архив — чистый LF.
+* text=auto
+
+# Windows-скрипты всегда должны выезжать с CRLF.
+*.cmd  text eol=crlf
+*.bat  text eol=crlf
+*.ps1  text eol=crlf
+
+# Бинарные файлы: никаких преобразований
+*.png  binary
+*.ico  binary
+*.jpg  binary
+*.jpeg binary
+*.gif  binary
+*.zip  binary

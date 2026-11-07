@@ -1,0 +1,13 @@
+{
+  "$schema": "https://www.flowlauncher.com/schemas/plugin.schema.json",
+  "ID": "d3b07384-d113-4a25-9c8e-a2f03f390001",
+  "ActionKeyword": "key",
+  "Name": "FlowKey Manager",
+  "Description": "Remap keyboard keys and mouse buttons via AutoHotkey v2",
+  "Author": "RADiant",
+  "Version": "1.0.0",
+  "Language": "python",
+  "Website": "https://github.com/RADiant-Git/FlowKey-Manager",
+  "ExecuteFileName": "main.py",
+  "IcoPath": "Images/app.png"
+}
