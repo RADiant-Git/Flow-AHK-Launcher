@@ -5,8 +5,8 @@
   "Author": "RADiant",
   "Version": "1.0.0",
   "Language": "python",
-  "Website": "https://github.com/RADiant-Git/FlowKey-Manager",
-  "UrlDownload": "https://github.com/RADiant-Git/FlowKey-Manager/releases/download/v1.0.0/FlowKeyManager.zip",
-  "UrlSourceCode": "https://github.com/RADiant-Git/FlowKey-Manager",
-  "IcoPath": "https://cdn.jsdelivr.net/gh/RADiant-Git/FlowKey-Manager@main/Images/app.png"
+  "Website": "https://github.com/RADiant-Git/Flow-AHK-Launcher",
+  "UrlDownload": "https://github.com/RADiant-Git/Flow-AHK-Launcher/releases/download/v1.0.0/FlowKeyManager.zip",
+  "UrlSourceCode": "https://github.com/RADiant-Git/Flow-AHK-Launcher",
+  "IcoPath": "https://cdn.jsdelivr.net/gh/RADiant-Git/Flow-AHK-Launcher@main/Images/app.png"
 }

@@ -62,7 +62,7 @@ class TestPluginJson(unittest.TestCase):
 
     def test_website_is_the_project_url(self):
         self.assertEqual(self.plugin["Website"],
-                         "https://github.com/RADiant-Git/FlowKey-Manager")
+                         "https://github.com/RADiant-Git/Flow-AHK-Launcher")
 
     def test_action_keyword_is_lowercase_without_spaces(self):
         self.assertRegex(self.plugin["ActionKeyword"], r"\A[a-z0-9]+\Z")

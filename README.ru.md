@@ -5,7 +5,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Python 3.8+](https://img.shields.io/badge/Python-3.8%2B-blue.svg)](https://www.python.org/)
 [![Flow Launcher](https://img.shields.io/badge/Flow%20Launcher-plugin-8250df.svg)](https://flowlauncher.com)
-[![Build](https://github.com/RADiant-Git/FlowKey-Manager/actions/workflows/publish-release.yml/badge.svg)](https://github.com/RADiant-Git/FlowKey-Manager/actions/workflows/publish-release.yml)
+[![Build](https://github.com/RADiant-Git/Flow-AHK-Launcher/actions/workflows/publish-release.yml/badge.svg)](https://github.com/RADiant-Git/Flow-AHK-Launcher/actions/workflows/publish-release.yml)
 
 Плагин [Flow Launcher](https://flowlauncher.com), который превращает нажатие клавиши или короткую
 формулу в переназначение [AutoHotkey v2](https://www.autohotkey.com/):
@@ -73,14 +73,14 @@ pm install FlowKey Manager
 ```
 
 **Вручную** — скачайте `FlowKeyManager.zip` со
-[страницы релизов](https://github.com/RADiant-Git/FlowKey-Manager/releases/latest) и либо выполните
+[страницы релизов](https://github.com/RADiant-Git/Flow-AHK-Launcher/releases/latest) и либо выполните
 `pm install <путь к архиву>`, либо распакуйте его в
 `%APPDATA%\FlowLauncher\Plugins\FlowKeyManager\`.
 
 **Из исходников**
 
 ```cmd
-git clone https://github.com/RADiant-Git/FlowKey-Manager.git "%APPDATA%\FlowLauncher\Plugins\FlowKeyManager"
+git clone https://github.com/RADiant-Git/Flow-AHK-Launcher.git "%APPDATA%\FlowLauncher\Plugins\FlowKeyManager"
 ```
 
 После этого перезапустите Flow Launcher (`Ctrl + R` в строке поиска). Ключевое слово — `key`, его
@@ -281,8 +281,8 @@ Flow Launcher -> main.py -> core/rpc.py -> core/services.py -> core/ahk/codegen.
 ## Разработка
 
 ```cmd
-git clone https://github.com/RADiant-Git/FlowKey-Manager.git
-cd FlowKey-Manager
+git clone https://github.com/RADiant-Git/Flow-AHK-Launcher.git
+cd Flow-AHK-Launcher
 python -m unittest discover -s tests -t .
 ```
 

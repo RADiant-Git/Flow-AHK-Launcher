@@ -5,7 +5,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 [![Python 3.8+](https://img.shields.io/badge/Python-3.8%2B-blue.svg)](https://www.python.org/)
 [![Flow Launcher](https://img.shields.io/badge/Flow%20Launcher-plugin-8250df.svg)](https://flowlauncher.com)
-[![Build](https://github.com/RADiant-Git/FlowKey-Manager/actions/workflows/publish-release.yml/badge.svg)](https://github.com/RADiant-Git/FlowKey-Manager/actions/workflows/publish-release.yml)
+[![Build](https://github.com/RADiant-Git/Flow-AHK-Launcher/actions/workflows/publish-release.yml/badge.svg)](https://github.com/RADiant-Git/Flow-AHK-Launcher/actions/workflows/publish-release.yml)
 
 A [Flow Launcher](https://flowlauncher.com) plugin that turns a key press or a short text formula into an
 [AutoHotkey v2](https://www.autohotkey.com/) remap:
@@ -73,13 +73,13 @@ pm install FlowKey Manager
 ```
 
 **Manually** — download `FlowKeyManager.zip` from the
-[latest release](https://github.com/RADiant-Git/FlowKey-Manager/releases/latest) and either run
+[latest release](https://github.com/RADiant-Git/Flow-AHK-Launcher/releases/latest) and either run
 `pm install <path to the zip>` or unpack it into `%APPDATA%\FlowLauncher\Plugins\FlowKeyManager\`.
 
 **From source**
 
 ```cmd
-git clone https://github.com/RADiant-Git/FlowKey-Manager.git "%APPDATA%\FlowLauncher\Plugins\FlowKeyManager"
+git clone https://github.com/RADiant-Git/Flow-AHK-Launcher.git "%APPDATA%\FlowLauncher\Plugins\FlowKeyManager"
 ```
 
 Restart Flow Launcher afterwards (`Ctrl + R` in its search bar). The action keyword is `key`; you can
@@ -279,8 +279,8 @@ file lock, because Flow Launcher starts a new process for every interaction.
 ## Development
 
 ```cmd
-git clone https://github.com/RADiant-Git/FlowKey-Manager.git
-cd FlowKey-Manager
+git clone https://github.com/RADiant-Git/Flow-AHK-Launcher.git
+cd Flow-AHK-Launcher
 python -m unittest discover -s tests -t .
 ```
 
