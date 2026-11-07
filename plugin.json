@@ -5,7 +5,7 @@
   "Name": "FlowKey Manager",
   "Description": "Remap keyboard keys and mouse buttons via AutoHotkey v2",
   "Author": "RADiant",
-  "Version": "1.0.0",
+  "Version": "1.0.1",
   "Language": "python",
   "Website": "https://github.com/RADiant-Git/Flow-AHK-Launcher",
   "ExecuteFileName": "main.py",

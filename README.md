@@ -35,6 +35,9 @@ The interface is currently Russian only; pull requests adding translations are w
 
 - ⌨️ **Capture by pressing** — press the key, combination or mouse button and it is recorded exactly,
   `XButton1` and `Ctrl + Alt + Shift + Win` included.
+- 🖱️ **Mouse buttons become modifiers too** — `XButton1 -> LWin` works out of the box: a lone
+  modifier as an action is always a hold, because sending it once presses and releases instantly.
+  The plugin switches such a rule to hold mode itself and marks it ⇄.
 - 🔒 **Hold mode** — a native AutoHotkey remap: the target key behaves like the real one, with
   auto-repeat and modifier combinations.
 - 🔓 **Transparency** — by default a rule swallows the original press; per rule you can let it through
@@ -115,6 +118,10 @@ switches to hold mode.
 | `remap` | `*w::Escape` | The target key behaves as the real one: auto-repeat, modifiers |
 
 `remap` accepts a single key name only. Given a sequence, the plugin falls back to `send` and says so.
+
+The reverse case needs no decision from you: a lone modifier as an action (`XButton1 -> LWin`) is
+always compiled as a remap, because `Send('{LCtrl}')` presses and releases in the same instant and
+does nothing. Such a rule is marked ⇄ and its row says «удержание».
 
 ### Key names and Send strings
 
@@ -264,6 +271,9 @@ file lock, because Flow Launcher starts a new process for every interaction.
   press `Enter` on it.
 - **Typing a formula does nothing.** A bare formula is treated as a filter. The builder needs the
   `new` prefix: `key new w -> esc`.
+- **A modifier rule turned into hold mode by itself.** That is intended: `Send('{LCtrl}')` presses and
+  releases instantly, so a single modifier can only mean «behave as this modifier». The rule row is
+  marked ⇄ and its subtitle says «удержание».
 - **Keys got stuck.** `key ?` → ⏸️ Приостановить все перехваты, then 🔄 Перезапустить рантайм AHK.
 - **Nothing happens in a game or an elevated app.** AutoHotkey cannot send input to a window with
   higher privileges than the script, and some games use raw input and ignore synthetic presses. Run
@@ -314,6 +324,15 @@ stay `<Name>-<ID>.json`, matching `plugin.json`.
 ---
 
 ## Changelog
+
+**1.0.1**
+Fixed the two crashes. Flow Launcher wraps a non-zero plugin exit into `FlowPluginException` and
+throws it on the UI thread, so a Python traceback used to take the whole application down; the plugin
+now always answers with valid JSON and exits with zero, even when it cannot start. The missing
+`Website` in `plugin.json` made Flow Launcher's own "Plugin: …" context entry call `OpenUrl(null)`
+and crash — the field is now filled. Remapping a mouse button to a modifier (`XButton1 -> LWin`) is
+possible: modifiers are offered in the action list and such a rule is compiled as a hold instead of
+being rejected.
 
 **1.0.0**
 First public release. Capture by pressing, hold mode, transparency, per-app scope, the DSL and the

@@ -5,7 +5,8 @@ import unittest
 
 from core.model import (DuplicateTrigger, GLOBAL_SCOPE, InvalidAction,
                         InvalidScope, InvalidTrigger, MODE_REMAP, MODE_SEND,
-                        RuleSet, RuleNotFound, build, humanize_trigger)
+                        RuleSet, RuleNotFound, build, humanize_trigger,
+                        resolve_mode)
 from core.session import Wizard
 from tests.support import TempCase
 from core.model import RuleDraft
@@ -254,6 +255,58 @@ class TestDraft(TempCase):
         self.assertEqual(rule.mode, MODE_REMAP)
         self.assertEqual(notes, [])
         self.assertIn("W", rule.name)
+
+
+class TestModifierAction(TempCase):
+    """Модификатор как действие: Send его не нажимает, значит это удержание.
+
+    Самый частый запрос — «кнопка мыши вместо Win»: `XButton1 -> LWin`.
+    Раньше плагин отказывал в нём с советом выбрать режим удержания вручную.
+    """
+
+    def test_mouse_to_modifier_becomes_remap(self):
+        draft = RuleDraft(trigger="XButton1", action="LWin",
+                          human="Mouse 4 (Back)")
+        rule, notes = draft.finalize(self.catalog)
+        self.assertEqual(rule.mode, MODE_REMAP)
+        self.assertEqual(rule.action, "LWin")
+        self.assertTrue(any("удержания" in note for note in notes), notes)
+
+    def test_modifier_alias_is_canonicalised_first(self):
+        rule, _ = RuleDraft(trigger="XButton1", action="win").finalize(self.catalog)
+        self.assertEqual((rule.action, rule.mode), ("LWin", MODE_REMAP))
+
+    def test_transparent_is_dropped_when_modifier_promotes(self):
+        draft = RuleDraft(trigger="XButton1", action="LWin", transparent=True)
+        rule, notes = draft.finalize(self.catalog)
+        self.assertEqual(rule.mode, MODE_REMAP)
+        self.assertFalse(rule.transparent)
+        self.assertTrue(any("Прозрачность" in note for note in notes), notes)
+
+    def test_generated_script_is_a_real_remap(self):
+        from core.ahk import codegen
+
+        rule, _ = RuleDraft(trigger="XButton1", action="LWin").finalize(self.catalog)
+        text, _ = codegen.render(RuleSet([rule]), self.catalog)
+        self.assertIn("*XButton1::LWin", text)
+
+    def test_ordinary_key_stays_send(self):
+        rule, notes = RuleDraft(trigger="XButton1", action="esc").finalize(self.catalog)
+        self.assertEqual(rule.mode, MODE_SEND)
+        self.assertEqual(notes, [])
+
+    def test_mouse_target_is_not_remapped(self):
+        """AutoHotkey не умеет ремапить мышь в мышь — это остаётся Send."""
+        self.assertEqual(resolve_mode("MButton", self.catalog), MODE_SEND)
+
+    def test_sequence_has_no_mode_to_resolve(self):
+        self.assertEqual(resolve_mode("^ew", self.catalog), MODE_SEND)
+
+    def test_explicit_hold_wins_for_a_plain_key(self):
+        self.assertEqual(resolve_mode("esc", self.catalog, True), MODE_REMAP)
+
+    def test_unknown_name_is_treated_as_a_sequence(self):
+        self.assertEqual(resolve_mode("hello", self.catalog), MODE_SEND)
 
 
 class TestWizardMachine(TempCase):

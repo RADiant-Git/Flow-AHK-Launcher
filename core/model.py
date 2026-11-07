@@ -190,6 +190,25 @@ def new_id() -> str:
     return uuid.uuid4().hex[:8]
 
 
+def resolve_mode(action: str, catalog: KeyCatalog, want_remap: bool = False) -> str:
+    """Какой режим действия реально применим к этому действию.
+
+    `Send('{LCtrl}')` нажимает клавишу и тут же отпускает — эффекта нет.
+    Поэтому одиночный модификатор означает удержание, даже если пользователь
+    выбрал обычный режим: он имел в виду «эта клавиша ведёт себя как
+    модификатор», а не «нажать и отпустить». Ровно этого требует самый частый
+    сценарий — переназначить кнопку мыши на `LWin`.
+    """
+    info = catalog.resolve(action)
+    if info is None:
+        return MODE_SEND        # готовая Send-последовательность: ремапить нечего
+    if not catalog.supports(info, REMAP):
+        return MODE_SEND        # мышь и колесо AutoHotkey ремапить не умеет
+    if want_remap or not catalog.supports(info, SEND):
+        return MODE_REMAP
+    return MODE_SEND
+
+
 def build(catalog: KeyCatalog, *, trigger: str, action: str,
           scope: str = GLOBAL_SCOPE, mode: str = MODE_SEND,
           enabled: bool = True, transparent: bool = False,
@@ -254,19 +273,17 @@ class RuleDraft:
         """Превратить в правило, вернув сопроводительные заметки для интерфейса."""
         notes = list(self.notes)
         action = canonical_action(self.action, catalog)
-        info = catalog.resolve(action)
 
-        mode = MODE_SEND
-        if self.want_remap:
-            if info and catalog.supports(info, REMAP):
-                mode = MODE_REMAP
-            else:
-                notes.append(
-                    "Удержание применено только для одиночных клавишей — "
-                    "«%s» отправляется как последовательность" % action
-                )
-            if mode == MODE_REMAP and self.transparent:
-                notes.append("Прозрачность не применена: она несовместима с удержанием")
+        mode = resolve_mode(action, catalog, self.want_remap)
+        if mode == MODE_REMAP and not self.want_remap:
+            notes.append("«%s» — модификатор, поэтому правило создано "
+                         "в режиме удержания" % action)
+        elif self.want_remap and mode != MODE_REMAP:
+            notes.append(
+                "Удержание применено только для одиночных клавишей — "
+                "«%s» отправляется как последовательность" % action)
+        if mode == MODE_REMAP and self.transparent:
+            notes.append("Прозрачность не применена: она несовместима с удержанием")
 
         rule = build(
             catalog,

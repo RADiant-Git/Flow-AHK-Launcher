@@ -12,6 +12,7 @@ from core import config
 from core.catalog import REMAP, SEND, TRIGGER
 from core.model import GLOBAL_SCOPE, MODE_REMAP, Rule
 from core.services import Context
+from core.session import Wizard
 
 KEYWORD = config.ACTION_KEYWORD
 
@@ -130,12 +131,13 @@ def _rule_card(ctx: Context, rule: Rule) -> Dict[str, Any]:
     else:
         status = "🟢" if rule.enabled else "⚪"
     mode = " ⇄" if rule.mode == MODE_REMAP else ""
+    how = "удержание" if rule.mode == MODE_REMAP else "одно нажатие"
     ghost = " 🔓" if rule.transparent else ""
     scope = "везде" if rule.scope == GLOBAL_SCOPE else rule.scope
     return card(
         "%s %s%s%s" % (status, rule.name, mode, ghost),
-        "Окно: %s%s | Enter — %s | Ctrl+O (ПКМ) — меню" % (
-            scope, " | нажатие проходит в окно" if rule.transparent else "",
+        "Окно: %s | %s%s | Enter — %s | Ctrl+O (ПКМ) — меню" % (
+            scope, how, " | нажатие проходит в окно" if rule.transparent else "",
             "выключить" if rule.enabled else "включить"),
         method="toggle_rule", params=[rule.id],
         context_data=[rule.id],
@@ -280,11 +282,31 @@ def action_step(ctx: Context, text: str) -> List[Dict[str, Any]]:
                             method="commit_action", params=[text]))
 
     role = REMAP if wizard.want_remap else SEND
-    for key in ctx.catalog.search(text, role=role)[:ACTION_LIMIT]:
+    for key in _action_candidates(ctx, wizard, text)[:ACTION_LIMIT]:
         results.append(card("%s [%s]" % (key.display_name, key.ahk_name),
                             "Категория: %s | Enter — выбрать" % key.category,
                             method="commit_action", params=[key.ahk_name]))
     return results
+
+
+def _action_candidates(ctx: Context, wizard: Wizard, text: str) -> List[Any]:
+    """Из чего можно выбрать действие.
+
+    В режиме удержания годится только то, что AutoHotkey умеет ремапить. В
+    обычном — всё, что вообще имеет смысл как действие, включая модификаторы:
+    одиночный `Send('{LCtrl}')` не нажимает ничего, поэтому такое правило плагин
+    сам переведёт в удержание (см. `RuleDraft.finalize`).
+
+    Модификаторы добавляются только к непустому запросу: в каталоге они идут
+    первыми и иначе занимали бы весь список из семи строк.
+    """
+    if wizard.want_remap:
+        return ctx.catalog.search(text, role=REMAP)
+    found = ctx.catalog.search(text, role=SEND)
+    if text:
+        found = found + [k for k in ctx.catalog.search(text, role=REMAP)
+                         if not ctx.catalog.supports(k, SEND)]
+    return found
 
 
 # --------------------------------------------------------------------------- #

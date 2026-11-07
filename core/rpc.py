@@ -101,8 +101,21 @@ class Application:
     # --- Разбор и рассылка -------------------------------------------
 
     def run(self, argv: Optional[List[str]] = None) -> int:
+        """Вывести ответ хосту. Возврат всегда 0.
+
+        Сначала считаем все строки и только потом печатаем: частично выданный
+        ответ Flow Launcher не разберёт, а ненулевой код возврата превращает в
+        `FlowPluginException`, которую он бросает в поток интерфейса — то есть
+        падает всё приложение, а не плагин.
+        """
         request = Request.from_argv(argv)
-        for line in self.respond(request).lines():
+        try:
+            lines = self.respond(request).lines()
+        except Exception as exc:  # noqa: BLE001 — последний рубеж перед хостом
+            lines = [json.dumps(
+                {"result": [_fallback_card("%s: %s" % (type(exc).__name__, exc))]},
+                ensure_ascii=True)]
+        for line in lines:
             print(line)
         return 0
 
@@ -353,6 +366,19 @@ def _step(name: str) -> str:
 
 def _problem(text: str) -> str:
     return "%s ошибка: %s" % (config.ACTION_KEYWORD, text)
+
+
+def _fallback_card(message: str) -> Dict[str, Any]:
+    """Карточка без зависимостей.
+
+    Собирается вручную, а не через `views.card`: этот код обязан работать, даже
+    если сломан слой представления.
+    """
+    return {
+        "Title": "⚠️ Сбой плагина",
+        "SubTitle": str(message)[:300],
+        "IcoPath": config.ICON_PATH,
+    }
 
 
 def _error_card(message: str) -> Dict[str, Any]:

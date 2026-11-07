@@ -7,6 +7,8 @@
 записанного триггера.
 """
 
+import contextlib
+import io
 import json
 import unittest
 
@@ -345,6 +347,54 @@ class TestReply(unittest.TestCase):
 
     def test_nothing(self):
         self.assertEqual(Reply().lines(), [])
+
+
+class TestRunNeverCrashesTheHost(TempCase):
+    """Ответ хосту всегда валиден, а выход всегда нулевой.
+
+    Flow Launcher считает ненулевой код возврата плагина ошибкой: `JsonRPCPlugin`
+    заворачивает трейсбек в `FlowPluginException`, а та всплывает в потоке
+    интерфейса и роняет всё приложение. Логи пользователя это подтверждают —
+    поэтому здесь проверяется не только «не бросил исключение», но и то, что в
+    stdout ушёл ровно один разбираемый JSON.
+    """
+
+    def run_app(self, app, argv):
+        buffer = io.StringIO()
+        with contextlib.redirect_stdout(buffer):
+            code = app.run(argv)
+        return code, buffer.getvalue()
+
+    def test_unknown_method_is_silent_and_successful(self):
+        code, out = self.run_app(Application(self.ctx), ['{"method":"нет-такого"}'])
+        self.assertEqual(code, 0)
+        self.assertEqual(out.strip(), "")
+
+    def test_broken_respond_still_yields_one_valid_json(self):
+        app = Application(self.ctx)
+
+        def boom(request):
+            raise RuntimeError("внутренняя поломка")
+
+        app.respond = boom
+        code, out = self.run_app(app, ['{"method":"query","parameters":[""]}'])
+        self.assertEqual(code, 0)
+        payload = json.loads(out)          # частичный вывод хост не разберёт
+        self.assertIn("Сбой", payload["result"][0]["Title"])
+
+    def test_handler_exception_becomes_a_card(self):
+        app = Application(self.ctx)
+        app.handlers = {"query": lambda *args: 1 / 0}
+        code, out = self.run_app(app, ['{"method":"query","parameters":[""]}'])
+        self.assertEqual(code, 0)
+        self.assertIn("ZeroDivisionError", json.loads(out)["result"][0]["SubTitle"])
+
+    def test_output_is_pure_ascii(self):
+        """Хост читает stdout в своей кодировке: не-ASCII ломает вывод."""
+        code, out = self.run_app(Application(self.ctx),
+                                 ['{"method":"query","parameters":[""]}'])
+        self.assertEqual(code, 0)
+        out.encode("ascii")
 
 
 if __name__ == "__main__":
